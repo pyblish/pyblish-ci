@@ -149,7 +149,10 @@ def run_build(build):
     popen = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
-        env=dict(os.environ, **{"BASH_ENV": "~/bashrc"}))
+        env=dict(os.environ, **{
+            "SYSTEM_IMAGE": image.split(":", 1)[0],
+            "SYSTEM_TAG": image.split(":", 1)[-1]
+        }))
 
     results = {
         "job": job,
