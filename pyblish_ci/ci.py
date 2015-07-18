@@ -138,6 +138,22 @@ def run_build(build):
             f.write("\n".join(script))
 
     this.log.info("Running script:\n%s" % script)
+
+    results = {
+        "job": job,
+        "output": [],
+        "returncode": None,
+        "success": False
+    }
+
+    # Ensure we're running the latest image
+    try:
+        subprocess.check_output(["docker", "pull", image])
+    except subprocess.CalledProcessError as e:
+        results["returncode"] = e.returncode
+        results["output"] = str(e).split("\n")
+        return results
+
     cmd = [
         "docker", "run", "-t", "--rm",
         "-v", "%s:/citmp" % root,
@@ -153,13 +169,6 @@ def run_build(build):
             "SYSTEM_IMAGE": image.split(":", 1)[0],
             "SYSTEM_TAG": image.split(":", 1)[-1]
         }))
-
-    results = {
-        "job": job,
-        "output": [],
-        "returncode": None,
-        "success": None
-    }
 
     if job not in this.cache:
         this.cache[job] = {}
@@ -193,6 +202,9 @@ def run_job(job, url, branch=None):
         job (str): Path of job, e.g. pyblish/pyblish-magenta/1
         pull_request (dict): GitHub pull request object
 
+    Returns:
+        List or builds
+
     """
 
     this.log.info("Running tests..")
@@ -210,7 +222,8 @@ def run_job(job, url, branch=None):
         # Parse configuration
         config = os.path.join(d, ".pyblish")
         if not os.path.exists(config):
-            return this.log.error("No .pyblish file found")
+            this.log.error("No .pyblish file found")
+            return []
 
         with open(config) as f:
             config = yaml.load(f)
@@ -218,7 +231,8 @@ def run_job(job, url, branch=None):
         # Get image
         images = config.get("image")
         if not images:
-            return this.log.error("No image specified")
+            this.log.error("No image specified")
+            return []
 
         if isinstance(images, basestring):
             images = [images]
@@ -229,9 +243,11 @@ def run_job(job, url, branch=None):
 
         script = config.get("script")
         if not script:
-            return this.log.error("No script specified")
+            this.log.error("No script specified")
+            return []
+
         if isinstance(script, basestring):
-            script = [script]
+            script = script.split("\n")
 
         # Form a tree of tasks, e.g.
         # job
