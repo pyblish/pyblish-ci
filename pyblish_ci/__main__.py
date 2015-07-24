@@ -15,6 +15,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", default=8000, type=int)
+    parser.add_argument("--debug", default=False)
 
     args = parser.parse_args()
 
@@ -29,5 +30,5 @@ if __name__ == '__main__':
     t.start()
 
     app.log.info("Starting front-end..")
-    app.app.debug = True
+    app.app.debug = args.debug
     app.app.run(host='0.0.0.0', port=args.port)
