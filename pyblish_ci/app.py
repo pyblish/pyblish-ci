@@ -111,7 +111,12 @@ def browse(user, repo):
         <div class="builds-body">{output}</div>
     """
 
-    builds = sorted(map(int, os.listdir(jobs)), key=int)
+    try:
+        builds = os.listdir(jobs)
+    except OSError:
+        return "No builds for %s" % jobs
+
+    builds = sorted(map(int, builds), key=int)
 
     return body.format(
         style=style,
