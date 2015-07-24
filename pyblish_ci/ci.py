@@ -19,6 +19,7 @@ this.cache = {}
 this.root = "/ci"
 this.job_queue = Queue.Queue()
 this.temp_queue = Queue.Queue()
+this.write_queue = Queue.Queue()
 this.log = pyblish_ci.log
 
 
@@ -81,6 +82,14 @@ def worker():
                 break
 
         this.job_queue.task_done()
+
+
+def writer():
+    """Persist results"""
+
+    while True:
+        results = this.write_queue.get()
+        write_results(results)
 
 
 @contextlib.contextmanager
@@ -182,12 +191,15 @@ def run_build(build):
     popen.communicate()  # Wait to finish
 
     duration = time.time() - __start
+    success = False if popen.returncode else True
 
     results["output"].append("")
     results["output"].append(
-        "Job finished in %.2fs" % duration)
+        "Job finished %s in %.2fs" % (
+            "successfully" if success else "with errors",
+            duration))
     results["returncode"] = popen.returncode
-    results["success"] = False if popen.returncode else True
+    results["success"] = success
     results["duration"] = duration
 
     write_results(job)
