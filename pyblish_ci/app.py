@@ -254,14 +254,14 @@ class Handler(flask.ext.restful.Resource):
         descriptions = {
             "pending": "Working on it..",
             "success": "All good",
-            "failure": "Things didn't go too well.."
+            "failure": "Oops.."
         }
 
         r = request("post", endpoint, json={
             "state": status,
             "target_url": "http://ci.pyblish.com/jobs/%s" % job,
             "description": descriptions[status],
-            "context": "continuous-integration/travix"
+            "context": "continuous-integration/pyblish-ci"
         })
 
         if not r.status_code == 201:  # Created
