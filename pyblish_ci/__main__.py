@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", default=8000, type=int)
-    parser.add_argument("--debug", default=False)
+    parser.add_argument("--debug", action="store_true")
 
     args = parser.parse_args()
 
